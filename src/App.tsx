@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { playProgression, previewChord, stopPlayback } from "./lib/audioPlayer";
+import { playProgression, previewChord, previewNote, stopPlayback } from "./lib/audioPlayer";
 import {
   CHORD_LIBRARY,
   type ChordAnalysis,
@@ -191,7 +191,11 @@ export default function App() {
             <p>Learn one sound at a time.</p>
           </div>
           {selectedAnalysis ? (
-            <ChordDetail chord={selectedAnalysis} onPreview={() => previewChord(selectedAnalysis)} />
+            <ChordDetail
+              chord={selectedAnalysis}
+              onPreview={() => previewChord(selectedAnalysis)}
+              onPreviewNote={(midiNote) => previewNote(midiNote)}
+            />
           ) : (
             <div className="detail-empty">
               <p>Select a readable chord to see its notes.</p>
@@ -199,11 +203,47 @@ export default function App() {
           )}
         </aside>
       </section>
+
+      <footer className="site-footer">
+        <p>© 2026 Enchorder</p>
+        <a
+          className="icon-link"
+          href="https://github.com/jhlee-young/enchorder"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Open GitHub repository"
+        >
+          <GitHubIcon />
+        </a>
+      </footer>
     </main>
   );
 }
 
-function ChordDetail({ chord, onPreview }: { chord: ChordAnalysis; onPreview: () => void }) {
+function GitHubIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="currentColor"
+      focusable="false"
+    >
+      <path d="M12 2C6.48 2 2 6.59 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.93.85.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.98c.85 0 1.7.12 2.5.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.4.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.95.68 1.91 0 1.38-.01 2.49-.01 2.83 0 .27.18.59.69.49A10.08 10.08 0 0 0 22 12.25C22 6.59 17.52 2 12 2Z" />
+    </svg>
+  );
+}
+
+function ChordDetail({
+  chord,
+  onPreview,
+  onPreviewNote,
+}: {
+  chord: ChordAnalysis;
+  onPreview: () => void;
+  onPreviewNote: (midiNote: number) => void;
+}) {
   return (
     <div className="chord-detail">
       <div className="detail-title-row">
@@ -227,21 +267,35 @@ function ChordDetail({ chord, onPreview }: { chord: ChordAnalysis; onPreview: ()
         </div>
       </dl>
       <p className="detail-description">{chord.description}</p>
+      <p className="keyboard-hint">Tap a highlighted key to hear one note.</p>
       <div className="keyboard" aria-label={`${chord.raw} notes on keyboard`}>
-        {KEYBOARD_NOTES.map((note) => (
-          <span
-            key={note}
-            className={[
-              "key",
-              note.includes("#") ? "key--black" : "key--white",
-              chord.notes.includes(note) ? "is-on" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {note}
-          </span>
-        ))}
+        {KEYBOARD_NOTES.map((note) => {
+          const noteIndex = chord.notes.indexOf(note);
+          const isChordTone = noteIndex >= 0;
+          const midiNote = chord.midiNotes[noteIndex];
+
+          return (
+            <button
+              key={note}
+              className={[
+                "key",
+                note.includes("#") ? "key--black" : "key--white",
+                isChordTone ? "is-on" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              disabled={!isChordTone}
+              onClick={() => {
+                if (isChordTone) {
+                  onPreviewNote(midiNote);
+                }
+              }}
+              aria-label={isChordTone ? `Play note ${note}` : `${note} is not in ${chord.raw}`}
+            >
+              {note}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

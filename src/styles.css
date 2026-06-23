@@ -378,6 +378,7 @@ button {
 }
 
 .detail-description,
+.keyboard-hint,
 .detail-empty p {
   color: var(--color-muted);
   font-size: 0.9375rem;
@@ -393,12 +394,19 @@ button {
 
 .key {
   align-items: end;
+  background: transparent;
   border: var(--border-thin);
+  border-radius: var(--radius-none);
+  cursor: default;
   display: flex;
   font-size: 0.6875rem;
   justify-content: center;
   min-height: 5.5rem;
   padding-bottom: var(--space-2);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .key--black {
@@ -410,6 +418,49 @@ button {
 .key.is-on {
   border-color: var(--color-accent);
   color: var(--color-accent);
+  cursor: pointer;
+}
+
+.key.is-on:hover,
+.key.is-on:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.key:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.site-footer {
+  align-items: center;
+  border-top: var(--border-thin);
+  color: var(--color-muted);
+  display: flex;
+  font-size: 0.8125rem;
+  justify-content: space-between;
+  margin-top: var(--space-7);
+  padding-top: var(--space-4);
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.icon-link {
+  align-items: center;
+  block-size: 2rem;
+  color: var(--color-muted);
+  display: inline-flex;
+  inline-size: 2rem;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.icon-link:focus-visible {
+  color: var(--color-ink);
+  outline: 1px solid var(--color-ink);
+  outline-offset: 2px;
 }
 
 @media (max-width: 900px) {

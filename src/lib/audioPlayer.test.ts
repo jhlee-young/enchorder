@@ -1,0 +1,142 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { parseChord, isChordAnalysis } from "./chordTheory";
+
+const toneMockState = vi.hoisted(() => ({
+  callSamplerOnload: true,
+  samplerLoaded: true,
+  samplerTrigger: vi.fn(),
+  synthTrigger: vi.fn(),
+  start: vi.fn(async () => undefined),
+  transportCancel: vi.fn(),
+  transportStop: vi.fn(),
+  transportStart: vi.fn(),
+  transportSchedule: vi.fn(),
+}));
+
+vi.mock("tone", () => {
+  class Sampler {
+    loaded = toneMockState.samplerLoaded;
+
+    constructor(options: { onload?: () => void }) {
+      if (toneMockState.callSamplerOnload) {
+        options.onload?.();
+      }
+    }
+
+    connect() {
+      return this;
+    }
+
+    triggerAttackRelease(...args: unknown[]) {
+      toneMockState.samplerTrigger(...args);
+      return this;
+    }
+  }
+
+  class PolySynth {
+    connect() {
+      return this;
+    }
+
+    triggerAttackRelease(...args: unknown[]) {
+      toneMockState.synthTrigger(...args);
+      return this;
+    }
+  }
+
+  class Reverb {
+    toDestination() {
+      return this;
+    }
+  }
+
+  class Filter {
+    connect() {
+      return this;
+    }
+  }
+
+  class Volume {
+    connect() {
+      return this;
+    }
+  }
+
+  class Synth {}
+
+  return {
+    Sampler,
+    PolySynth,
+    Synth,
+    Reverb,
+    Filter,
+    Volume,
+    start: toneMockState.start,
+    Transport: {
+      bpm: { value: 0 },
+      cancel: toneMockState.transportCancel,
+      stop: toneMockState.transportStop,
+      start: toneMockState.transportStart,
+      schedule: toneMockState.transportSchedule,
+    },
+  };
+});
+
+async function importAudioPlayer() {
+  vi.resetModules();
+  return import("./audioPlayer");
+}
+
+beforeEach(() => {
+  toneMockState.callSamplerOnload = true;
+  toneMockState.samplerLoaded = true;
+  toneMockState.samplerTrigger.mockClear();
+  toneMockState.synthTrigger.mockClear();
+  toneMockState.start.mockClear();
+  toneMockState.transportCancel.mockClear();
+  toneMockState.transportStop.mockClear();
+  toneMockState.transportStart.mockClear();
+  toneMockState.transportSchedule.mockClear();
+});
+
+describe("audioPlayer", () => {
+  it("previews one midi note through the sampler path when samples are ready", async () => {
+    const { previewNote } = await importAudioPlayer();
+
+    await previewNote(62);
+
+    expect(toneMockState.start).toHaveBeenCalledOnce();
+    expect(toneMockState.samplerTrigger).toHaveBeenCalledWith("D4", "0.75s", undefined, 0.88);
+    expect(toneMockState.synthTrigger).not.toHaveBeenCalled();
+  });
+
+  it("previews a chord through the same sampler path when samples are ready", async () => {
+    const { previewChord } = await importAudioPlayer();
+    const chord = parseChord("Dm9");
+
+    expect(isChordAnalysis(chord)).toBe(true);
+    if (!isChordAnalysis(chord)) {
+      return;
+    }
+
+    await previewChord(chord);
+
+    expect(toneMockState.samplerTrigger).toHaveBeenCalledWith(
+      ["D4", "F4", "A4", "C5", "E5"],
+      "1.2s",
+      undefined,
+      0.82,
+    );
+  });
+
+  it("uses fallback synth immediately while sampler is still loading", async () => {
+    toneMockState.callSamplerOnload = false;
+    toneMockState.samplerLoaded = false;
+    const { previewNote } = await importAudioPlayer();
+
+    await previewNote(60);
+
+    expect(toneMockState.synthTrigger).toHaveBeenCalledWith("C4", "0.75s", undefined, 0.88);
+    expect(toneMockState.samplerTrigger).not.toHaveBeenCalled();
+  });
+});
