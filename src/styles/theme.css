@@ -1,0 +1,27 @@
+:root {
+  --color-paper: #f7f7f2;
+  --color-ink: #111111;
+  --color-muted: #77776f;
+  --color-rule: #d8d7cf;
+  --color-accent: #2457ff;
+  --color-accent-soft: #eef1ff;
+  --color-error: #b42318;
+
+  --font-display: "Instrument Sans", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "SFMono-Regular", Menlo, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --border-thin: 1px solid var(--color-rule);
+  --transition-fast: 160ms ease;
+}
