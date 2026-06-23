@@ -110,6 +110,29 @@ describe("audioPlayer", () => {
     expect(toneMockState.synthTrigger).not.toHaveBeenCalled();
   });
 
+  it("previews a midi note group through the sampler path", async () => {
+    const { previewMidiNotes } = await importAudioPlayer();
+
+    await previewMidiNotes([62, 69, 65, 72, 76]);
+
+    expect(toneMockState.start).toHaveBeenCalledOnce();
+    expect(toneMockState.samplerTrigger).toHaveBeenCalledWith(
+      ["D4", "A4", "F4", "C5", "E5"],
+      "0.75s",
+      undefined,
+      0.82,
+    );
+  });
+
+  it("skips empty midi note group previews", async () => {
+    const { previewMidiNotes } = await importAudioPlayer();
+
+    await previewMidiNotes([]);
+
+    expect(toneMockState.start).not.toHaveBeenCalled();
+    expect(toneMockState.samplerTrigger).not.toHaveBeenCalled();
+  });
+
   it("previews a chord through the same sampler path when samples are ready", async () => {
     const { previewChord } = await importAudioPlayer();
     const chord = parseChord("Dm9");
@@ -146,6 +169,50 @@ describe("audioPlayer", () => {
       undefined,
       0.82,
     );
+  });
+
+  it("schedules each event when previewing a comping pattern", async () => {
+    const { previewChordPattern } = await importAudioPlayer();
+    const chord = parseChord("Dm9");
+
+    expect(isChordAnalysis(chord)).toBe(true);
+    if (!isChordAnalysis(chord)) {
+      return;
+    }
+
+    await previewChordPattern(chord, 120);
+
+    expect(toneMockState.transportStop).toHaveBeenCalledOnce();
+    expect(toneMockState.transportCancel).toHaveBeenCalledOnce();
+    expect(toneMockState.transportSchedule).toHaveBeenCalledTimes(8);
+    expect(toneMockState.transportSchedule).toHaveBeenNthCalledWith(1, expect.any(Function), 0);
+    expect(toneMockState.transportSchedule).toHaveBeenNthCalledWith(2, expect.any(Function), 0.25);
+    expect(toneMockState.transportStart).toHaveBeenCalledOnce();
+
+    const firstEvent = toneMockState.transportSchedule.mock.calls[0][0] as (time: number) => void;
+    firstEvent(1.5);
+
+    expect(toneMockState.samplerTrigger).toHaveBeenCalledWith(
+      ["D4", "A4", "F4", "C5", "E5"],
+      0.21,
+      1.5,
+      0.72,
+    );
+  });
+
+  it("does not schedule playback for chords without a comping pattern", async () => {
+    const { previewChordPattern } = await importAudioPlayer();
+    const chord = parseChord("Cmaj7");
+
+    expect(isChordAnalysis(chord)).toBe(true);
+    if (!isChordAnalysis(chord)) {
+      return;
+    }
+
+    await previewChordPattern(chord, 120);
+
+    expect(toneMockState.start).not.toHaveBeenCalled();
+    expect(toneMockState.transportSchedule).not.toHaveBeenCalled();
   });
 
   it("uses fallback synth immediately while sampler is still loading", async () => {

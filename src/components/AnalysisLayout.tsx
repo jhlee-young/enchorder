@@ -10,6 +10,8 @@ type AnalysisLayoutProps = {
   chords: ParsedChord[];
   onSelectChord: (index: number) => void;
   onPreviewChord: (chord: ChordAnalysis) => void;
+  onPreviewPattern: (chord: ChordAnalysis) => void;
+  onPreviewPatternEvent: (midiNotes: number[]) => void;
   onPreviewNote: (midiNote: number) => void;
 };
 
@@ -21,6 +23,8 @@ export function AnalysisLayout({
   chords,
   onSelectChord,
   onPreviewChord,
+  onPreviewPattern,
+  onPreviewPatternEvent,
   onPreviewNote,
 }: AnalysisLayoutProps) {
   return (
@@ -35,6 +39,8 @@ export function AnalysisLayout({
       <ChordDetailPanel
         selectedChord={selectedChord}
         onPreviewChord={onPreviewChord}
+        onPreviewPattern={onPreviewPattern}
+        onPreviewPatternEvent={onPreviewPatternEvent}
         onPreviewNote={onPreviewNote}
       />
     </section>

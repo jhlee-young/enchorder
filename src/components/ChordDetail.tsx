@@ -1,13 +1,27 @@
 import type { ChordAnalysis } from "../lib/chordTheory";
+import { getCompingPattern, getCompingVoicings } from "../lib/compingPatterns";
 import { PianoKeyboard } from "./PianoKeyboard";
 
 type ChordDetailProps = {
   chord: ChordAnalysis;
   onPreview: () => void;
+  onPreviewPattern: () => void;
+  onPreviewPatternEvent: (midiNotes: number[]) => void;
   onPreviewNote: (midiNote: number) => void;
 };
 
-export function ChordDetail({ chord, onPreview, onPreviewNote }: ChordDetailProps) {
+export function ChordDetail({
+  chord,
+  onPreview,
+  onPreviewPattern,
+  onPreviewPatternEvent,
+  onPreviewNote,
+}: ChordDetailProps) {
+  const compingPattern = getCompingPattern(chord);
+  const compingVoicings = getCompingVoicings(chord);
+  const hasPattern = compingPattern.length > 0;
+  const hasVoicings = compingVoicings.length > 0;
+
   return (
     <div className="chord-detail">
       <div className="detail-title-row">
@@ -39,6 +53,56 @@ export function ChordDetail({ chord, onPreview, onPreviewNote }: ChordDetailProp
       <p className="detail-description">{chord.description}</p>
       <p className="keyboard-hint">Tap a highlighted key to hear one note.</p>
       <PianoKeyboard chord={chord} onPreviewNote={onPreviewNote} />
+      <details className="advanced-panel">
+        <summary>Advanced</summary>
+        <div className="advanced-panel__content">
+          <div className="advanced-panel__header">
+            <div>
+              <p className="advanced-panel__title">Comping voicings</p>
+              <p className="advanced-panel__copy">
+                Tap a shape to hear one way to play this chord.
+              </p>
+            </div>
+            <button className="button" onClick={onPreviewPattern} disabled={!hasPattern}>
+              Pattern
+            </button>
+          </div>
+          {hasVoicings ? (
+            <div className="pattern-strip" aria-label={`${chord.raw} comping voicings`}>
+              {compingVoicings.map((event, eventIndex) => (
+                <button
+                  key={`${event.noteNames.join("")}-${eventIndex}`}
+                  className={[
+                    "pattern-event",
+                    event.includesRoot ? "pattern-event--root" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onClick={() => onPreviewPatternEvent(event.midiNotes)}
+                  aria-label={`Play pattern ${event.noteNames.join("")}`}
+                >
+                  {event.noteNames.map((noteName, noteIndex) => {
+                    const isRootNote = event.midiNotes[noteIndex] === chord.midiNotes[0];
+
+                    return (
+                      <span
+                        key={`${noteName}-${noteIndex}`}
+                        className={["pattern-note", isRootNote ? "pattern-note--root" : ""]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        {noteName}
+                      </span>
+                    );
+                  })}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="advanced-panel__empty">No voicings yet for this chord type.</p>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { ChordAnalysis } from "./chordTheory";
 import { midiToNote } from "./chordTheory";
+import { getCompingPattern } from "./compingPatterns";
 
 type ToneModule = typeof import("tone");
 type PlayableInstrument = {
@@ -123,6 +124,54 @@ export async function previewNote(midiNote: number, duration = "0.75s") {
   await Tone.start();
   const instrument = await getInstrument();
   instrument.triggerAttackRelease(midiToNote(midiNote), duration, undefined, 0.88);
+}
+
+export async function previewMidiNotes(midiNotes: number[], duration = "0.75s") {
+  if (midiNotes.length === 0) {
+    return;
+  }
+
+  const Tone = await getTone();
+  await Tone.start();
+  const instrument = await getInstrument();
+  instrument.triggerAttackRelease(midiNotes.map(midiToNote), duration, undefined, 0.82);
+}
+
+export async function previewChordPattern(chord: ChordAnalysis, bpm: number) {
+  const pattern = getCompingPattern(chord);
+
+  if (pattern.length === 0) {
+    return;
+  }
+
+  const Tone = await getTone();
+  await Tone.start();
+  const instrument = await getInstrument();
+  Tone.Transport.cancel();
+  Tone.Transport.stop();
+  Tone.Transport.bpm.value = bpm;
+
+  const beatSeconds = 60 / bpm;
+  const eventSpacing = beatSeconds * 0.5;
+  const eventDuration = eventSpacing * 0.84;
+
+  pattern.forEach((event, index) => {
+    Tone.Transport.schedule((time) => {
+      instrument.triggerAttackRelease(
+        event.midiNotes.map(midiToNote),
+        eventDuration,
+        time,
+        0.72,
+      );
+    }, index * eventSpacing);
+  });
+
+  Tone.Transport.schedule(() => {
+    Tone.Transport.stop();
+    Tone.Transport.cancel();
+  }, pattern.length * eventSpacing);
+
+  Tone.Transport.start();
 }
 
 export async function playProgression(

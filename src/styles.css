@@ -379,11 +379,91 @@ button {
 
 .detail-description,
 .keyboard-hint,
+.advanced-panel__copy,
+.advanced-panel__empty,
 .detail-empty p {
   color: var(--color-muted);
   font-size: 0.9375rem;
   line-height: 1.55;
   margin: 0;
+}
+
+.advanced-panel {
+  border-top: var(--border-thin);
+  padding-top: var(--space-3);
+}
+
+.advanced-panel summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.advanced-panel summary:focus-visible {
+  color: var(--color-accent);
+  outline: 0;
+}
+
+.advanced-panel__content {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+.advanced-panel__header {
+  align-items: start;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.advanced-panel__title {
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+.pattern-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pattern-event {
+  background: transparent;
+  border: var(--border-thin);
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 1px;
+  padding: 2px;
+}
+
+.pattern-event--root {
+  border-color: var(--color-accent);
+}
+
+.pattern-event:hover,
+.pattern-event:focus-visible {
+  border-color: var(--color-accent);
+  outline: 0;
+}
+
+.pattern-note {
+  align-items: center;
+  background: transparent;
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  justify-content: center;
+  min-inline-size: 1.45rem;
+  padding: 0.2rem 0.3rem;
+}
+
+.pattern-note--root {
+  background: var(--color-ink);
+  color: var(--color-paper);
 }
 
 .keyboard {

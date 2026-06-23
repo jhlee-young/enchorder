@@ -4,7 +4,14 @@ import { AppHeader } from "./components/AppHeader";
 import { HeroPanel } from "./components/HeroPanel";
 import { SiteFooter } from "./components/SiteFooter";
 import { Workspace } from "./components/Workspace";
-import { playProgression, previewChord, previewNote, stopPlayback } from "./lib/audioPlayer";
+import {
+  playProgression,
+  previewChord,
+  previewChordPattern,
+  previewMidiNotes,
+  previewNote,
+  stopPlayback,
+} from "./lib/audioPlayer";
 import { CHORD_LIBRARY, isChordAnalysis, parseProgression } from "./lib/chordTheory";
 import {
   clearPracticeState,
@@ -116,6 +123,8 @@ export default function App() {
         chords={parsedChords}
         onSelectChord={setSelectedIndex}
         onPreviewChord={previewChord}
+        onPreviewPattern={(chord) => previewChordPattern(chord, bpm)}
+        onPreviewPatternEvent={previewMidiNotes}
         onPreviewNote={previewNote}
       />
       <SiteFooter />

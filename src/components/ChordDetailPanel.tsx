@@ -5,12 +5,16 @@ import { SectionHeading } from "./SectionHeading";
 type ChordDetailPanelProps = {
   selectedChord?: ChordAnalysis;
   onPreviewChord: (chord: ChordAnalysis) => void;
+  onPreviewPattern: (chord: ChordAnalysis) => void;
+  onPreviewPatternEvent: (midiNotes: number[]) => void;
   onPreviewNote: (midiNote: number) => void;
 };
 
 export function ChordDetailPanel({
   selectedChord,
   onPreviewChord,
+  onPreviewPattern,
+  onPreviewPatternEvent,
   onPreviewNote,
 }: ChordDetailPanelProps) {
   return (
@@ -18,8 +22,11 @@ export function ChordDetailPanel({
       <SectionHeading title="Chord Detail" description="Learn one sound at a time." />
       {selectedChord ? (
         <ChordDetail
+          key={selectedChord.id}
           chord={selectedChord}
           onPreview={() => onPreviewChord(selectedChord)}
+          onPreviewPattern={() => onPreviewPattern(selectedChord)}
+          onPreviewPatternEvent={onPreviewPatternEvent}
           onPreviewNote={onPreviewNote}
         />
       ) : (
