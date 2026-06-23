@@ -12,7 +12,6 @@ function renderChordDetail(chordName: string) {
   }
 
   const onPreview = vi.fn();
-  const onPreviewPattern = vi.fn();
   const onPreviewPatternEvent = vi.fn();
   const onPreviewNote = vi.fn();
 
@@ -20,13 +19,12 @@ function renderChordDetail(chordName: string) {
     <ChordDetail
       chord={chord}
       onPreview={onPreview}
-      onPreviewPattern={onPreviewPattern}
       onPreviewPatternEvent={onPreviewPatternEvent}
       onPreviewNote={onPreviewNote}
     />,
   );
 
-  return { onPreviewPattern, onPreviewPatternEvent };
+  return { onPreviewPatternEvent };
 }
 
 describe("ChordDetail", () => {
@@ -40,7 +38,7 @@ describe("ChordDetail", () => {
   });
 
   it("shows minor nine comping voicings inside advanced controls", () => {
-    const { onPreviewPattern, onPreviewPatternEvent } = renderChordDetail("Dm9");
+    const { onPreviewPatternEvent } = renderChordDetail("Dm9");
 
     fireEvent.click(screen.getByText("Advanced"));
 
@@ -56,19 +54,15 @@ describe("ChordDetail", () => {
     fireEvent.click(facVoicing);
 
     expect(onPreviewPatternEvent).toHaveBeenCalledWith([65, 69, 72]);
-
-    fireEvent.click(screen.getByRole("button", { name: "Pattern" }));
-
-    expect(onPreviewPattern).toHaveBeenCalledOnce();
   });
 
-  it("shows voicings but disables the full pattern button when no rhythm pattern exists", () => {
+  it("shows voicings without a full pattern button", () => {
     renderChordDetail("Cmaj7");
 
     fireEvent.click(screen.getByText("Advanced"));
 
     expect(screen.getByLabelText("Cmaj7 comping voicings")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Play pattern CEG" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Pattern" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Pattern" })).not.toBeInTheDocument();
   });
 });

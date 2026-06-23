@@ -17,6 +17,7 @@ let sampler: import("tone").Sampler | null = null;
 let fallbackSynth: import("tone").PolySynth | null = null;
 let outputVolume: import("tone").Volume | null = null;
 let samplerState: "idle" | "loading" | "ready" | "fallback" = "idle";
+let samplerLoadPromise: Promise<void> | null = null;
 
 const PIANO_SAMPLE_URLS = {
   C4: "C4.mp3",
@@ -76,25 +77,36 @@ function createSampler(Tone: ToneModule) {
   }
 
   samplerState = "loading";
-
-  sampler = new Tone.Sampler({
-    urls: PIANO_SAMPLE_URLS,
-    baseUrl: "/audio/piano/",
-    attack: 0.002,
-    release: 1.25,
-    curve: "exponential",
-    onload: () => {
-      samplerState = "ready";
-    },
-    onerror: () => {
-      samplerState = "fallback";
-    },
-  }).connect(createOutputChain(Tone));
+  samplerLoadPromise = new Promise((resolve, reject) => {
+    sampler = new Tone.Sampler({
+      urls: PIANO_SAMPLE_URLS,
+      baseUrl: "/audio/piano/",
+      attack: 0.002,
+      release: 1.25,
+      curve: "exponential",
+      onload: () => {
+        samplerState = "ready";
+        resolve();
+      },
+      onerror: () => {
+        samplerState = "fallback";
+        reject(new Error("Piano samples failed to load."));
+      },
+    }).connect(createOutputChain(Tone));
+  });
 }
 
 async function getInstrument(): Promise<PlayableInstrument> {
   const Tone = await getTone();
   createSampler(Tone);
+
+  if (sampler && samplerState === "ready" && sampler.loaded) {
+    return sampler;
+  }
+
+  if (samplerLoadPromise && samplerState === "loading") {
+    await samplerLoadPromise.catch(() => undefined);
+  }
 
   if (sampler && samplerState === "ready" && sampler.loaded) {
     return sampler;

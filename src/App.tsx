@@ -7,7 +7,6 @@ import { Workspace } from "./components/Workspace";
 import {
   playProgression,
   previewChord,
-  previewChordPattern,
   previewMidiNotes,
   previewNote,
   stopPlayback,
@@ -123,7 +122,6 @@ export default function App() {
         chords={parsedChords}
         onSelectChord={setSelectedIndex}
         onPreviewChord={previewChord}
-        onPreviewPattern={(chord) => previewChordPattern(chord, bpm)}
         onPreviewPatternEvent={previewMidiNotes}
         onPreviewNote={previewNote}
       />

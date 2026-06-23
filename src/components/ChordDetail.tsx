@@ -1,11 +1,10 @@
 import type { ChordAnalysis } from "../lib/chordTheory";
-import { getCompingPattern, getCompingVoicings } from "../lib/compingPatterns";
+import { getCompingVoicings } from "../lib/compingPatterns";
 import { PianoKeyboard } from "./PianoKeyboard";
 
 type ChordDetailProps = {
   chord: ChordAnalysis;
   onPreview: () => void;
-  onPreviewPattern: () => void;
   onPreviewPatternEvent: (midiNotes: number[]) => void;
   onPreviewNote: (midiNote: number) => void;
 };
@@ -13,13 +12,10 @@ type ChordDetailProps = {
 export function ChordDetail({
   chord,
   onPreview,
-  onPreviewPattern,
   onPreviewPatternEvent,
   onPreviewNote,
 }: ChordDetailProps) {
-  const compingPattern = getCompingPattern(chord);
   const compingVoicings = getCompingVoicings(chord);
-  const hasPattern = compingPattern.length > 0;
   const hasVoicings = compingVoicings.length > 0;
 
   return (
@@ -63,9 +59,6 @@ export function ChordDetail({
                 Tap a shape to hear one way to play this chord.
               </p>
             </div>
-            <button className="button" onClick={onPreviewPattern} disabled={!hasPattern}>
-              Pattern
-            </button>
           </div>
           {hasVoicings ? (
             <div className="pattern-strip" aria-label={`${chord.raw} comping voicings`}>

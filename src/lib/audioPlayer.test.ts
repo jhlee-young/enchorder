@@ -4,6 +4,7 @@ import { parseChord, isChordAnalysis } from "./chordTheory";
 const toneMockState = vi.hoisted(() => ({
   callSamplerOnload: true,
   samplerLoaded: true,
+  samplerOnload: null as null | (() => void),
   samplerTrigger: vi.fn(),
   synthTrigger: vi.fn(),
   start: vi.fn(async () => undefined),
@@ -15,9 +16,13 @@ const toneMockState = vi.hoisted(() => ({
 
 vi.mock("tone", () => {
   class Sampler {
-    loaded = toneMockState.samplerLoaded;
+    get loaded() {
+      return toneMockState.samplerLoaded;
+    }
 
     constructor(options: { onload?: () => void }) {
+      toneMockState.samplerOnload = options.onload ?? null;
+
       if (toneMockState.callSamplerOnload) {
         options.onload?.();
       }
@@ -90,6 +95,7 @@ async function importAudioPlayer() {
 beforeEach(() => {
   toneMockState.callSamplerOnload = true;
   toneMockState.samplerLoaded = true;
+  toneMockState.samplerOnload = null;
   toneMockState.samplerTrigger.mockClear();
   toneMockState.synthTrigger.mockClear();
   toneMockState.start.mockClear();
@@ -215,14 +221,24 @@ describe("audioPlayer", () => {
     expect(toneMockState.transportSchedule).not.toHaveBeenCalled();
   });
 
-  it("uses fallback synth immediately while sampler is still loading", async () => {
+  it("waits for piano samples instead of using the fallback while the sampler is still loading", async () => {
     toneMockState.callSamplerOnload = false;
     toneMockState.samplerLoaded = false;
     const { previewNote } = await importAudioPlayer();
 
-    await previewNote(60);
+    const previewPromise = previewNote(60);
+    await vi.waitFor(() => {
+      expect(toneMockState.samplerOnload).toBeTypeOf("function");
+    });
 
-    expect(toneMockState.synthTrigger).toHaveBeenCalledWith("C4", "0.75s", undefined, 0.88);
+    expect(toneMockState.synthTrigger).not.toHaveBeenCalled();
     expect(toneMockState.samplerTrigger).not.toHaveBeenCalled();
+
+    toneMockState.samplerLoaded = true;
+    toneMockState.samplerOnload?.();
+    await previewPromise;
+
+    expect(toneMockState.samplerTrigger).toHaveBeenCalledWith("C4", "0.75s", undefined, 0.88);
+    expect(toneMockState.synthTrigger).not.toHaveBeenCalled();
   });
 });
