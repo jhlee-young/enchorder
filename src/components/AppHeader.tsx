@@ -5,6 +5,7 @@ type AppHeaderProps = {
   isPlaying: boolean;
   onBpmChange: (bpm: number) => void;
   onPlay: () => void;
+  onReset: () => void;
   onStop: () => void;
 };
 
@@ -13,6 +14,7 @@ export function AppHeader({
   isPlaying,
   onBpmChange,
   onPlay,
+  onReset,
   onStop,
 }: AppHeaderProps) {
   return (
@@ -41,6 +43,9 @@ export function AppHeader({
         </button>
         <button className="button" onClick={onStop}>
           Stop
+        </button>
+        <button className="button" onClick={onReset}>
+          Reset
         </button>
       </div>
     </header>
