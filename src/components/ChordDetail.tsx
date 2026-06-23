@@ -29,6 +29,12 @@ export function ChordDetail({ chord, onPreview, onPreviewNote }: ChordDetailProp
           <dt>Notes</dt>
           <dd>{chord.notes.join(" ")}</dd>
         </div>
+        {chord.isSlashChord && chord.bassNote ? (
+          <div>
+            <dt>Bass note</dt>
+            <dd>{chord.bassNote}</dd>
+          </div>
+        ) : null}
       </dl>
       <p className="detail-description">{chord.description}</p>
       <p className="keyboard-hint">Tap a highlighted key to hear one note.</p>

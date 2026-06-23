@@ -24,6 +24,9 @@ export type ChordAnalysis = {
   qualityLabel: string;
   notes: string[];
   midiNotes: number[];
+  bassNote?: string;
+  bassMidiNote?: number;
+  isSlashChord: boolean;
   description: string;
   error?: never;
 };
@@ -290,7 +293,18 @@ export function parseProgression(input: string): ParsedChord[] {
 }
 
 export function parseChord(raw: string, index = 0): ParsedChord {
-  const match = raw.match(/^([A-G](?:#|b)?)(.*)$/);
+  const slashParts = raw.split("/");
+
+  if (slashParts.length > 2 || (slashParts.length === 2 && (!slashParts[0] || !slashParts[1]))) {
+    return {
+      id: `${index}-${raw}`,
+      raw,
+      error: "Use slash chords like C/E, with one bass note after the slash.",
+    };
+  }
+
+  const [chordSymbol, bassSymbol] = slashParts;
+  const match = chordSymbol.match(/^([A-G](?:#|b)?)(.*)$/);
 
   if (!match) {
     return {
@@ -302,12 +316,21 @@ export function parseChord(raw: string, index = 0): ParsedChord {
 
   const [, root, suffix] = match;
   const pitchClass = ROOT_TO_PITCH_CLASS[root];
+  const bassPitchClass = bassSymbol ? ROOT_TO_PITCH_CLASS[bassSymbol] : undefined;
 
   if (pitchClass === undefined) {
     return {
       id: `${index}-${raw}`,
       raw,
       error: "Use a root note from A to G, with optional # or b.",
+    };
+  }
+
+  if (bassSymbol && bassPitchClass === undefined) {
+    return {
+      id: `${index}-${raw}`,
+      raw,
+      error: "Use a bass note from A to G after the slash, with optional # or b.",
     };
   }
 
@@ -324,6 +347,11 @@ export function parseChord(raw: string, index = 0): ParsedChord {
   const definition = QUALITY_DEFINITIONS[aliasMatch.quality];
   const notes = definition.intervals.map((interval) => noteName(pitchClass + interval));
   const midiNotes = definition.intervals.map((interval) => 60 + pitchClass + interval);
+  const isSlashChord = bassSymbol !== undefined;
+  const slashDescription =
+    isSlashChord && bassSymbol
+      ? ` ${raw} means ${chordSymbol} with ${bassSymbol} in the bass.`
+      : "";
 
   return {
     id: `${index}-${raw}`,
@@ -333,7 +361,10 @@ export function parseChord(raw: string, index = 0): ParsedChord {
     qualityLabel: definition.label,
     notes,
     midiNotes,
-    description: definition.description(root, notes),
+    bassNote: bassSymbol,
+    bassMidiNote: bassPitchClass === undefined ? undefined : 48 + bassPitchClass,
+    isSlashChord,
+    description: `${definition.description(root, notes)}${slashDescription}`,
   };
 }
 

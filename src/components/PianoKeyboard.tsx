@@ -1,5 +1,5 @@
 import { KEYBOARD_NOTES } from "../constants/appDefaults";
-import type { ChordAnalysis } from "../lib/chordTheory";
+import { noteName, type ChordAnalysis } from "../lib/chordTheory";
 
 type PianoKeyboardProps = {
   chord: ChordAnalysis;
@@ -12,7 +12,12 @@ export function PianoKeyboard({ chord, onPreviewNote }: PianoKeyboardProps) {
       {KEYBOARD_NOTES.map((note) => {
         const noteIndex = chord.notes.indexOf(note);
         const isChordTone = noteIndex >= 0;
-        const midiNote = chord.midiNotes[noteIndex];
+        const isBassNote =
+          chord.isSlashChord &&
+          chord.bassMidiNote !== undefined &&
+          noteName(chord.bassMidiNote) === note;
+        const isPlayable = isChordTone || isBassNote;
+        const midiNote = isBassNote ? chord.bassMidiNote : chord.midiNotes[noteIndex];
 
         return (
           <button
@@ -20,17 +25,24 @@ export function PianoKeyboard({ chord, onPreviewNote }: PianoKeyboardProps) {
             className={[
               "key",
               note.includes("#") ? "key--black" : "key--white",
-              isChordTone ? "is-on" : "",
+              isPlayable ? "is-on" : "",
+              isBassNote ? "is-bass" : "",
             ]
               .filter(Boolean)
               .join(" ")}
-            disabled={!isChordTone}
+            disabled={!isPlayable}
             onClick={() => {
-              if (isChordTone) {
+              if (isPlayable && midiNote !== undefined) {
                 onPreviewNote(midiNote);
               }
             }}
-            aria-label={isChordTone ? `Play note ${note}` : `${note} is not in ${chord.raw}`}
+            aria-label={
+              isBassNote
+                ? `Play bass note ${chord.bassNote ?? note}`
+                : isChordTone
+                  ? `Play note ${note}`
+                  : `${note} is not in ${chord.raw}`
+            }
           >
             {note}
           </button>

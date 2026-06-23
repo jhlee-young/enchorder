@@ -24,6 +24,51 @@ describe("parseChord", () => {
     expectNotes("Bbadd9", ["A#", "D", "F", "C"]);
   });
 
+  it("parses slash chords with a separate bass note", () => {
+    const chord = parseChord("C/E");
+
+    expect(isChordAnalysis(chord)).toBe(true);
+    if (!isChordAnalysis(chord)) {
+      return;
+    }
+
+    expect(chord.root).toBe("C");
+    expect(chord.qualityLabel).toBe("Major");
+    expect(chord.notes).toEqual(["C", "E", "G"]);
+    expect(chord.bassNote).toBe("E");
+    expect(chord.bassMidiNote).toBe(52);
+    expect(chord.isSlashChord).toBe(true);
+  });
+
+  it("supports slash chords across roots, qualities, sharps, and flats", () => {
+    const examples = [
+      ["G/B", "B"],
+      ["D/F#", "F#"],
+      ["Bb/D", "D"],
+      ["G7/B", "B"],
+      ["C/Bb", "Bb"],
+    ] as const;
+
+    for (const [symbol, bassNote] of examples) {
+      const chord = parseChord(symbol);
+
+      expect(isChordAnalysis(chord)).toBe(true);
+      if (isChordAnalysis(chord)) {
+        expect(chord.bassNote).toBe(bassNote);
+        expect(chord.isSlashChord).toBe(true);
+      }
+    }
+  });
+
+  it("returns a readable error for invalid slash chord bass notes", () => {
+    for (const symbol of ["C/H", "C/", "C/E/G"]) {
+      const chord = parseChord(symbol);
+
+      expect(isChordAnalysis(chord)).toBe(false);
+      expect(chord.error).toMatch(/slash|bass note/i);
+    }
+  });
+
   it("returns a readable error for unknown input", () => {
     const chord = parseChord("hello");
     expect(isChordAnalysis(chord)).toBe(false);

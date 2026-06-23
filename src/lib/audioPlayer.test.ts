@@ -129,6 +129,25 @@ describe("audioPlayer", () => {
     );
   });
 
+  it("previews slash chords with the bass note first", async () => {
+    const { previewChord } = await importAudioPlayer();
+    const chord = parseChord("C/E");
+
+    expect(isChordAnalysis(chord)).toBe(true);
+    if (!isChordAnalysis(chord)) {
+      return;
+    }
+
+    await previewChord(chord);
+
+    expect(toneMockState.samplerTrigger).toHaveBeenCalledWith(
+      ["E3", "C4", "E4", "G4"],
+      "1.2s",
+      undefined,
+      0.82,
+    );
+  });
+
   it("uses fallback synth immediately while sampler is still loading", async () => {
     toneMockState.callSamplerOnload = false;
     toneMockState.samplerLoaded = false;

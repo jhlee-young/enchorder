@@ -102,11 +102,20 @@ async function getInstrument(): Promise<PlayableInstrument> {
   return createFallbackSynth(Tone);
 }
 
+function getChordPlaybackNotes(chord: ChordAnalysis) {
+  const midiNotes =
+    chord.isSlashChord && chord.bassMidiNote !== undefined
+      ? [chord.bassMidiNote, ...chord.midiNotes]
+      : chord.midiNotes;
+
+  return midiNotes.map(midiToNote);
+}
+
 export async function previewChord(chord: ChordAnalysis, duration = "1.2s") {
   const Tone = await getTone();
   await Tone.start();
   const instrument = await getInstrument();
-  instrument.triggerAttackRelease(chord.midiNotes.map(midiToNote), duration, undefined, 0.82);
+  instrument.triggerAttackRelease(getChordPlaybackNotes(chord), duration, undefined, 0.82);
 }
 
 export async function previewNote(midiNote: number, duration = "0.75s") {
@@ -136,7 +145,7 @@ export async function playProgression(
     Tone.Transport.schedule((time) => {
       onStep(index);
       instrument.triggerAttackRelease(
-        chord.midiNotes.map(midiToNote),
+        getChordPlaybackNotes(chord),
         chordDuration * 0.85,
         time,
         0.78,

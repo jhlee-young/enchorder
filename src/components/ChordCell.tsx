@@ -34,6 +34,11 @@ export function ChordCell({ chord, isActive, isSelected, onSelect }: ChordCellPr
           <span>
             <b>Notes</b> {chord.notes.join(" ")}
           </span>
+          {chord.isSlashChord && chord.bassNote ? (
+            <span>
+              <b>Bass</b> {chord.bassNote}
+            </span>
+          ) : null}
         </>
       )}
     </button>
