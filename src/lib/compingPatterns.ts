@@ -7,16 +7,6 @@ export type CompingPatternEvent = {
   includesRoot: boolean;
 };
 
-const MINOR_NINE_PATTERN = [
-  [0, 2, 1, 3, 4],
-  [2, 1, 3, 4],
-  [2, 1, 3, 4],
-  [2, 1, 3, 4],
-  [2, 1, 4],
-  [1, 3, 4],
-  [1, 2, 3, 4],
-];
-
 function createEvent(chord: ChordAnalysis, noteIndexes: number[]): CompingPatternEvent {
   return {
     midiNotes: noteIndexes.map((noteIndex) => chord.midiNotes[noteIndex]),
@@ -40,24 +30,27 @@ function getIndexCombinations(indexes: number[], size: number): number[][] {
 }
 
 export function getCompingPattern(chord: ChordAnalysis): CompingPatternEvent[] {
-  if (chord.quality !== "minorNine") {
+  const voicings = getCompingVoicings(chord);
+
+  if (voicings.length === 0) {
     return [];
   }
 
-  return MINOR_NINE_PATTERN.map((noteIndexes, eventIndex) => {
-    const event = createEvent(chord, noteIndexes);
+  const rootVoicings = voicings.filter((event) => event.includesRoot);
+  const rootVoicing = rootVoicings[rootVoicings.length - 1] ?? voicings[0];
+  const upperVoicings = voicings.filter((event) => !event.includesRoot);
+  const colorVoicing = upperVoicings[upperVoicings.length - 1] ?? voicings[voicings.length - 1] ?? rootVoicing;
+  const lightVoicing = upperVoicings[0] ?? voicings[0];
 
-    if (eventIndex === 0 && chord.bassMidiNote !== undefined) {
-      const bassNoteName = chord.bassNote ?? noteName(chord.bassMidiNote);
-      return {
-        midiNotes: [chord.bassMidiNote, ...event.midiNotes],
-        noteNames: [bassNoteName, ...event.noteNames],
-        includesRoot: event.includesRoot,
-      };
-    }
-
-    return event;
-  });
+  return [
+    rootVoicing,
+    colorVoicing,
+    colorVoicing,
+    lightVoicing,
+    colorVoicing,
+    lightVoicing,
+    rootVoicing,
+  ];
 }
 
 export function getCompingVoicings(chord: ChordAnalysis): CompingPatternEvent[] {

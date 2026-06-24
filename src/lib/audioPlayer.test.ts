@@ -199,14 +199,14 @@ describe("audioPlayer", () => {
     firstEvent(1.5);
 
     expect(toneMockState.samplerTrigger).toHaveBeenCalledWith(
-      ["D4", "A4", "F4", "C5", "E5"],
+      ["D4", "F4", "A4", "C5", "E5"],
       0.21,
       1.5,
       0.72,
     );
   });
 
-  it("does not schedule playback for chords without a comping pattern", async () => {
+  it("schedules comping pattern playback for major seventh chords", async () => {
     const { previewChordPattern } = await importAudioPlayer();
     const chord = parseChord("Cmaj7");
 
@@ -217,8 +217,8 @@ describe("audioPlayer", () => {
 
     await previewChordPattern(chord, 120);
 
-    expect(toneMockState.start).not.toHaveBeenCalled();
-    expect(toneMockState.transportSchedule).not.toHaveBeenCalled();
+    expect(toneMockState.start).toHaveBeenCalledOnce();
+    expect(toneMockState.transportSchedule).toHaveBeenCalledTimes(8);
   });
 
   it("waits for piano samples instead of using the fallback while the sampler is still loading", async () => {

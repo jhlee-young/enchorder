@@ -22,46 +22,49 @@ function getVoicingLabels(chordName: string) {
 }
 
 describe("getCompingPattern", () => {
-  it("creates the minor nine comping pattern for Dm9", () => {
+  it("creates a comping pattern for Dm9", () => {
     expect(getPatternLabels("Dm9")).toEqual([
-      "DAFCE",
-      "AFCE",
-      "AFCE",
-      "AFCE",
-      "AFE",
-      "FCE",
+      "DFACE",
       "FACE",
+      "FACE",
+      "FAC",
+      "FACE",
+      "FAC",
+      "DFACE",
     ]);
   });
 
-  it("transposes the same minor nine pattern from the chord root", () => {
+  it("transposes the same pattern choices from the chord root", () => {
     expect(getPatternLabels("Am9")).toEqual([
-      "AECGB",
-      "ECGB",
-      "ECGB",
-      "ECGB",
-      "ECB",
-      "CGB",
+      "ACEGB",
       "CEGB",
+      "CEGB",
+      "CEG",
+      "CEGB",
+      "CEG",
+      "ACEGB",
     ]);
   });
 
-  it("prepends slash bass to the first minor nine pattern event", () => {
+  it("keeps slash bass on the first pattern event", () => {
     expect(getPatternLabels("Dm9/F")).toEqual([
-      "FDAFCE",
-      "AFCE",
-      "AFCE",
-      "AFCE",
-      "AFE",
-      "FCE",
+      "FDFACE",
       "FACE",
+      "FACE",
+      "FAC",
+      "FACE",
+      "FAC",
+      "FDFACE",
     ]);
   });
 
-  it("returns no pattern for unsupported chord types", () => {
-    const chord = parseAnalysis("Cmaj7");
+  it("creates patterns for common chord types", () => {
+    for (const chordName of ["C", "Cmaj7", "G7", "Dm7", "Dm9", "Fadd9", "C/E"]) {
+      const pattern = getCompingPattern(parseAnalysis(chordName));
 
-    expect(getCompingPattern(chord)).toEqual([]);
+      expect(pattern.length).toBeGreaterThan(0);
+      expect(pattern.every((event) => event.midiNotes.length > 0 && event.noteNames.length > 0)).toBe(true);
+    }
   });
 });
 

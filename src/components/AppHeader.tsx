@@ -38,14 +38,39 @@ export function AppHeader({
         <span id="bpm-help" className="sr-only">
           Beats per minute
         </span>
-        <button className="button button--primary" onClick={onPlay} disabled={isPlaying}>
-          Play
+        <button
+          className="button button--icon button--primary"
+          onClick={onPlay}
+          disabled={isPlaying}
+          aria-label="Play progression"
+        >
+          <svg aria-hidden="true" className="button__icon" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
         </button>
-        <button className="button" onClick={onStop}>
-          Stop
+        <button className="button button--icon" onClick={onStop} aria-label="Stop playback">
+          <svg aria-hidden="true" className="button__icon" viewBox="0 0 24 24">
+            <rect x="7" y="7" width="10" height="10" rx="1" />
+          </svg>
         </button>
-        <button className="button" onClick={onReset}>
-          Reset
+        <button className="button button--icon" onClick={onReset} aria-label="Reset practice">
+          <svg aria-hidden="true" className="button__icon" viewBox="0 0 24 24">
+            <path
+              d="M5 7v5h5"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+            <path
+              d="M6.2 16A7 7 0 1 0 7 7.8"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2"
+            />
+          </svg>
         </button>
       </div>
     </header>

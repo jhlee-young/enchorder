@@ -18,6 +18,7 @@ import {
   loadPracticeState,
   savePracticeState,
 } from "./lib/practiceStorage";
+import { generateProgression } from "./lib/progressionGenerator";
 
 export default function App() {
   const [practiceState, setPracticeState] = useState(loadPracticeState);
@@ -49,6 +50,11 @@ export default function App() {
 
   function handleInputChange(nextInput: string) {
     setPracticeState((currentState) => ({ ...currentState, input: nextInput }));
+    setSelectedIndex(0);
+  }
+
+  function handleGenerateProgression() {
+    setPracticeState((currentState) => ({ ...currentState, input: generateProgression() }));
     setSelectedIndex(0);
   }
 
@@ -111,6 +117,7 @@ export default function App() {
       <Workspace
         input={input}
         libraryItems={CHORD_LIBRARY}
+        onGenerateProgression={handleGenerateProgression}
         onInputChange={handleInputChange}
         onInsertExample={insertExample}
       />
